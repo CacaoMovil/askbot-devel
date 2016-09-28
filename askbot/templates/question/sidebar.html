@@ -148,7 +148,7 @@
 
 {% if similar_threads.data() and settings.SIDEBAR_QUESTION_SHOW_RELATED %}
     {#% cache 1800 "related_questions" related_questions question.id language_code %#}
-    <div class="box">
+    <div class="box related-questions-box">
       <h2>{{ settings.WORDS_RELATED_QUESTIONS|escape }}</h2>
         <div class="questions-related">
             {% for thread_dict in similar_threads.data() %}
