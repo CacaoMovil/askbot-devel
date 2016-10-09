@@ -207,3 +207,19 @@ settings.register(
         description=_('ident.ca consumer secret'),
     )
 )
+
+settings.register(
+    livesettings.StringValue(
+        EXTERNAL_KEYS,
+        'TWILIO_ACCOUNT_SID',
+        description=_('Twilio account sid'),
+    )
+)
+
+settings.register(
+    livesettings.StringValue(
+        EXTERNAL_KEYS,
+        'TWILIO_AUTH_TOKEN',
+        description=_('Twilio auth token'),
+    )
+)

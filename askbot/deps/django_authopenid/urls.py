@@ -60,8 +60,14 @@ urlpatterns = patterns('askbot.deps.django_authopenid.views',
     ),
     url(
         r'^%s$' % pgettext('urls', 'verify-email/'),
-        'verify_email_and_register',
+        'verify_user_and_register',
         name='verify_email_and_register'
+    ),
+    url(
+        r'^%s$' % pgettext('urls', 'verify-phone-number/'),
+        'verify_user_and_register',
+        {'template_name': 'authopenid/verify_number.html'},
+        name='verify_phone_and_register'
     ),
     url(
         r'^delete_login_method/$',#this method is ajax only

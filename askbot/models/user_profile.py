@@ -8,6 +8,7 @@ from django.db import models
 from django.utils import timezone
 from jsonfield import JSONField
 from django_countries.fields import CountryField
+from phonenumber_field.modelfields import PhoneNumberField
 
 def get_profile_cache_key(user):
     if user.pk:
@@ -96,13 +97,14 @@ def add_profile_properties(cls):
         'twitter_access_token',
         'twitter_handle',
         'website',
+        'phone_number',
     )
     for name in names:
         add_profile_property(cls, name)
 
 
 class UserProfile(models.Model):
-    #text_search_vector           | tsvector                 | 
+    #text_search_vector           | tsvector                 |
     auth_user_ptr = models.OneToOneField(
                                 User,
                                 parent_link=True,
@@ -176,6 +178,8 @@ class UserProfile(models.Model):
                                 default=const.SHARE_NOTHING,
                                 choices=const.SOCIAL_SHARING_MODE_CHOICES
                             )
+    #used for sms login and notifications
+    phone_number = PhoneNumberField(null=True, blank=True)
 
     class Meta:
         app_label = 'askbot'

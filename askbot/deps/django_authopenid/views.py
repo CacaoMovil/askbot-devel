@@ -44,6 +44,7 @@ from django.contrib.auth import authenticate
 from django.core.urlresolvers import reverse
 from django.forms.util import ErrorList
 from django.shortcuts import render
+from django.template import Context
 from django.template.loader import get_template
 from django.views.decorators import csrf
 from django.utils import timezone
@@ -91,6 +92,7 @@ from askbot.deps.django_authopenid.backends import AuthBackend
 import logging
 from askbot.utils.forms import get_next_url
 from askbot.utils.http import get_request_info
+from askbot.utils.sms import send_sms
 from askbot.signals import user_logged_in, user_registered
 
 
@@ -100,7 +102,8 @@ def get_next_url_from_session(session):
 
 def create_authenticated_user_account(
     username=None, email=None, password=None,
-    user_identifier=None, login_provider_name=None
+    user_identifier=None, login_provider_name=None,
+    phone_number=None
 ):
     """creates a user account, user association with
     the login method and the the default email subscriptions
@@ -110,7 +113,6 @@ def create_authenticated_user_account(
     user_registered.send(None, user=user)
 
     logging.debug('creating new openid user association for %s', username)
-
     if password:
         user.set_password(password)
         user.save()
@@ -121,6 +123,11 @@ def create_authenticated_user_account(
             provider_name = login_provider_name,
             last_used_timestamp = timezone.now()
         ).save()
+
+    if phone_number:
+        profile = user.askbot_profile
+        profile.phone_number = phone_number
+        profile.save()
 
     subscribe_form = askbot_forms.SimpleEmailSubscribeForm({'subscribe': 'y'})
     subscribe_form.full_clean()
@@ -1073,7 +1080,7 @@ def finalize_generic_signin(
 
 @not_authenticated
 @csrf.csrf_protect
-def register(request, login_provider_name=None, 
+def register(request, login_provider_name=None,
     user_identifier=None, redirect_url=None):
     """
     this function is used via it's own url with request.method=POST
@@ -1253,7 +1260,7 @@ def signin_failure(request, message):
 
 @not_authenticated
 @csrf.csrf_protect
-def verify_email_and_register(request):
+def verify_user_and_register(request, template_name='authopenid/verify_email.html'):
     """for POST request - check the validation code,
     and if correct - create an account an log in the user
 
@@ -1271,17 +1278,32 @@ def verify_email_and_register(request):
             assert(email_verifier.has_expired() == False)
 
             username = email_verifier.value['username']
-            email = email_verifier.value['email']
+            if 'email' in email_verifier.value:
+                email = email_verifier.value['email']
+                use_sms = False
+            elif 'phone_number' in email_verifier.value:
+                phone_number = email_verifier.value['phone_number']
+                use_sms = True
+            else:
+                raise Exception("email or phone number not present in verifier object")
+
             password = email_verifier.value.get('password', None)
             user_identifier = email_verifier.value.get('user_identifier', None)
             login_provider_name = email_verifier.value.get('login_provider_name', None)
 
             if password:
-                user = create_authenticated_user_account(
-                    username=username,
-                    email=email,
-                    password=password,
-                )
+                if use_sms:
+                    user = create_authenticated_user_account(
+                        username=username,
+                        phone_number=phone_number,
+                        password=password,
+                    )
+                else:
+                    user = create_authenticated_user_account(
+                        username=username,
+                        email=email,
+                        password=password,
+                    )
             elif user_identifier and login_provider_name:
                 user = create_authenticated_user_account(
                     username=username,
@@ -1307,7 +1329,7 @@ def verify_email_and_register(request):
             return HttpResponseRedirect(reverse('index'))
     else:
         data = {'page_class': 'validate-email-page'}
-        return render(request, 'authopenid/verify_email.html', data)
+        return render(request, template_name, data)
 
 @not_authenticated
 @csrf.csrf_protect
@@ -1320,10 +1342,21 @@ def signup_with_password(request):
     login_form = forms.LoginForm(initial = {'next': get_next_url(request)})
     #this is safe because second decorator cleans this field
 
-    if askbot_settings.USE_RECAPTCHA:
-        RegisterForm = forms.SafeClassicRegisterForm
+    if request.method == 'GET':
+        use_sms = request.GET.get('login_provider', 'local') == 'sms'
     else:
-        RegisterForm = forms.ClassicRegisterForm
+        use_sms = request.POST.get('login_provider', 'local') == 'sms'
+
+    if askbot_settings.USE_RECAPTCHA:
+        if use_sms:
+            RegisterForm = forms.SafeSMSRegistrationForm
+        else:
+            RegisterForm = forms.SafeClassicRegisterForm
+    else:
+        if use_sms:
+            RegisterForm = forms.SMSRegistrationForm
+        else:
+            RegisterForm = forms.ClassicRegisterForm
 
     logging.debug('request method was %s' % request.method)
     if request.method == 'POST':
@@ -1332,28 +1365,40 @@ def signup_with_password(request):
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password1']
-            email = form.cleaned_data['email']
-
-            if askbot_settings.REQUIRE_VALID_EMAIL_FOR == 'nothing':
-                user = create_authenticated_user_account(
-                    username=username,
-                    email=email,
-                    password=password,
-                )
-                login(request, user)
-                cleanup_post_register_session(request)
-                return HttpResponseRedirect(get_next_url(request))
+            if not use_sms:
+                email = form.cleaned_data['email']
+                if askbot_settings.REQUIRE_VALID_EMAIL_FOR == 'nothing':
+                    user = create_authenticated_user_account(
+                        username=username,
+                        email=email,
+                        password=password,
+                    )
+                    login(request, user)
+                    cleanup_post_register_session(request)
+                    return HttpResponseRedirect(get_next_url(request))
+                else:
+                    email_verifier = UserEmailVerifier(key=generate_random_key())
+                    email_verifier.value = {'username': username,
+                                            'login_provider_name': 'local',
+                                            'email': email, 'password': password}
+                    email_verifier.save()
+                    send_email_key(
+                        email, email_verifier.key,
+                        handler_url_name='verify_email_and_register'
+                    )
+                    redirect_url = reverse('verify_email_and_register') + \
+                                    '?next=' + get_next_url(request)
+                    return HttpResponseRedirect(redirect_url)
             else:
-                email_verifier = UserEmailVerifier(key=generate_random_key())
-                email_verifier.value = {'username': username,
-                                        'login_provider_name': 'local',
-                                        'email': email, 'password': password}
-                email_verifier.save()
-                send_email_key(
-                    email, email_verifier.key,
-                    handler_url_name='verify_email_and_register'
-                )
-                redirect_url = reverse('verify_email_and_register') + \
+                phone_number = str(form.cleaned_data['phone_number'])
+                #we cut the random length to 8 chars because putting a long one is very unpleasant
+                sms_verifier = UserEmailVerifier(key=generate_random_key()[:8])
+                sms_verifier.value = {'username': username,
+                                      'login_provider_name': 'sms',
+                                       'phone_number': phone_number, 'password': password}
+                sms_verifier.save()
+                send_sms_key(phone_number, sms_verifier.key)
+                redirect_url = reverse('verify_phone_and_register') + \
                                 '?next=' + get_next_url(request)
                 return HttpResponseRedirect(redirect_url)
     else:
@@ -1365,6 +1410,7 @@ def signup_with_password(request):
 
     context_data = {
         'form': form,
+        'use_sms': use_sms,
         'page_class': 'openid-signin',
         'major_login_providers': major_login_providers.values(),
         'minor_login_providers': minor_login_providers.values(),
@@ -1428,6 +1474,14 @@ def send_email_key(address, key, handler_url_name='user_account_recover'):
     })
     email.send([address,])
 
+def send_sms_key(phone_number, key):
+    '''sends the sms containg the key'''
+    template_name = 'authopenid/sms_validation.txt'
+    template = get_template(template_name)
+    context = { 'site_name': askbot_settings.APP_SHORT_NAME,
+                'key': key }
+    message = template.render(Context(context))
+    send_sms(phone_number, message)
 
 def send_user_new_email_key(user):
     user.email_key = generate_random_key()

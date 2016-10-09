@@ -1,0 +1,12 @@
+{% extends "one_column_body.html" %}
+{% block title %}{% spaceless %}{% trans %}Confirm phone number{% endtrans %}{% endspaceless %}{% endblock %}
+{% block content %}
+    <h1 class="section-title">{% trans %}Confirm phone number{% endtrans %}</h1>
+    <label for="validation_code">
+        {% trans %}Validation code sent to your mobile phone. Please find it and enter it in the form below:{% endtrans %}
+    </label>
+    <form method="post">{% csrf_token %}
+        <input id="validation-code" type="text" name="validation_code" />
+        <input type="submit" value="{% trans %}Enter SMS validation Code{% endtrans %}" />
+    </form>
+{% endblock %}
