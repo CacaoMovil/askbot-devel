@@ -14,3 +14,6 @@ from askbot.utils.loading import module_exists
 from . import mediawiki
 if module_exists('cas'):
     from . import cas_provider
+
+if module_exists('twitlio'):
+    from . import twitlio_provider

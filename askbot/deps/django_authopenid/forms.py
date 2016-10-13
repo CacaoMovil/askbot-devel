@@ -42,6 +42,8 @@ from askbot.forms import AskbotReCaptchaField
 from askbot.utils.forms import NextUrlField, UserNameField, UserEmailField, SetPasswordForm
 from askbot.utils.loading import load_module
 
+from phonenumber_field.formfields import PhoneNumberField
+
 # needed for some linux distributions like debian
 try:
     from openid.yadis import xri
@@ -350,6 +352,20 @@ class SafeClassicRegisterForm(ClassicRegisterForm):
         super(SafeClassicRegisterForm, self).__init__(*args, **kwargs)
         self.fields['recaptcha'] = AskbotReCaptchaField()
 
+class SMSRegistrationForm(SetPasswordForm):
+    '''Form to support registration with SMS instead of email'''
+    next = NextUrlField()
+    username = UserNameField(widget_attrs={'tabindex': 0})
+    phone_number = PhoneNumberField()
+    login_provider = forms.CharField(max_length=20,
+                                     initial='sms', widget=forms.HiddenInput())
+
+class SafeSMSRegistrationForm(SMSRegistrationForm):
+    '''Adds recatpcha to the SMSRegistrationForm'''
+
+    def __init__(self, *args, **kwargs):
+        super(SafeSMSRegistrationForm, self).__init__(*args, **kwargs)
+        self.fields['recaptcha'] = AskbotReCaptchaField()
 
 class ChangePasswordForm(forms.Form):
     """ change password form """
