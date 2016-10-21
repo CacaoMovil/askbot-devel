@@ -419,6 +419,7 @@ def edit_user(request, id):
             user.country = form.cleaned_data['country']
             user.show_country = form.cleaned_data['show_country']
             user.show_marked_tags = form.cleaned_data['show_marked_tags']
+            user.phone_number = form.cleaned_data['phone_number']
             user.save()
             user.update_localized_profile(about=sanitize_html(form.cleaned_data['about']))
             # send user updated signal if full fields have been updated
@@ -1006,7 +1007,7 @@ def user_reputation(request, user, context):
                                         'question__thread',
                                         'user'
                                     )
-                                    
+
 
     def format_graph_data(raw_data, user):
         # prepare data for the graph - last values go in first
@@ -1231,6 +1232,7 @@ def user_email_subscriptions(request, user, context):
         #initialize the form
         email_feeds_form = forms.EditUserEmailFeedsForm()
         email_feeds_form.set_initial_values(user)
+
         tag_filter_form = forms.TagFilterSelectionForm(instance=user)
 
     data = {
@@ -1252,6 +1254,64 @@ def user_email_subscriptions(request, user, context):
         'user_profile/user_email_subscriptions.html',
         context
     )
+
+@owner_or_moderator_required
+@csrf.csrf_protect
+def user_sms_subscriptions(request, user, context):
+
+    logging.debug(get_request_info(request))
+    action_status = None
+
+    if request.method == 'POST':
+        sms_feeds_form = forms.EditUserSMSFeedsForm(request.POST)
+        tag_filter_form = forms.TagFilterSelectionForm(request.POST, instance=user)
+        if sms_feeds_form.is_valid() and tag_filter_form.is_valid():
+
+            tag_filter_saved = tag_filter_form.save()
+            if tag_filter_saved:
+                action_status = _('changes saved')
+            if 'save' in request.POST:
+                feeds_saved = sms_feeds_form.save(user)
+                if feeds_saved:
+                    action_status = _('changes saved')
+            elif 'stop_sms' in request.POST:
+                sms_stopped = sms_feeds_form.reset().save(user)
+                initial_values = forms.EditUserSMSFeedsForm.NO_EMAIL_INITIAL
+                sms_feeds_form = forms.EditUserSMSFeedsForm(initial=initial_values)
+                if sms_stopped:
+                    action_status = _('email updates canceled')
+    else:
+        #user may have been created by some app that does not know
+        #about the email subscriptions, in that case the call below
+        #will add any subscription settings that are missing
+        #using the default frequencies
+        user.add_missing_askbot_subscriptions()
+
+        sms_feeds_form = forms.EditUserSMSFeedsForm()
+        sms_feeds_form.set_initial_values(user)
+        tag_filter_form = forms.TagFilterSelectionForm(instance=user)
+
+    data = {
+        'active_tab': 'users',
+        'subscribed_tag_names': user.get_marked_tag_names('subscribed'),
+        'page_class': 'user-profile-page',
+        'tab_name': 'sms_subscriptions',
+        'page_title': _('profile - email subscriptions'),
+        'sms_feeds_form': sms_feeds_form,
+        'tag_filter_selection_form': tag_filter_form,
+        'action_status': action_status,
+        'user_languages': user.languages.split()
+    }
+    context.update(data)
+    #todo: really need only if subscribed tags are enabled
+    context.update(view_context.get_for_tag_editor())
+    return render(
+        request,
+        'user_profile/user_sms_subscriptions.html',
+        context
+    )
+
+
 
 @csrf.csrf_protect
 def user_custom_tab(request, user, context):
@@ -1280,6 +1340,7 @@ USER_VIEW_CALL_TABLE = {
     'favorites': user_favorites,
     'votes': user_votes,
     'email_subscriptions': user_email_subscriptions,
+    'sms_subscriptions': user_sms_subscriptions,
     'moderation': user_moderate,
 }
 
@@ -1313,6 +1374,7 @@ def user(request, id, slug=None, tab_name=None):
         tab_name = request.GET.get('sort', 'stats')
 
     can_show_karma = models.user_can_see_karma(request.user, profile_owner)
+
     if can_show_karma == False and tab_name == 'reputation':
         raise Http404
 

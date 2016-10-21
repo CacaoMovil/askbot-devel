@@ -17,9 +17,16 @@
                 href="{% url user_select_languages view_user.id, view_user.username|slugify %}"
             ><span>{% trans %}languages{% endtrans %}</span></a>
             {% endif %}
+            {% if request.user.email %}
             <a id="email_subscriptions" {% if tab_name=="email_subscriptions" %}class="on"{% endif %} 
                 href="{% url user_profile view_user.id, view_user.username|slugify %}?sort=email_subscriptions"
             ><span>{% trans %}email alerts{% endtrans %}</span></a>
+            {% endif %}
+            {% if request.user.askbot_profile.phone_number %}
+            <a id="sms_subscriptions" {% if tab_name=="sms_subscriptions" %}class="on"{% endif %} 
+                href="{% url user_profile view_user.id, view_user.username|slugify %}?sort=sms_subscriptions"
+            ><span>{% trans %}sms alerts{% endtrans %}</span></a>
+            {% endif %}
         {% endif %}
         {% if user_follow_feature_on %}
         <a id="network" {% if tab_name=="network" %}class="on"{% endif %} 

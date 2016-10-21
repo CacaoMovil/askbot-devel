@@ -313,7 +313,7 @@ class EmailFeedSettingManager(models.Manager):
 
         return subscriber_set
 
-class EmailFeedSetting(models.Model):
+class FeedSettingAbstract(models.Model):
     #definitions of delays before notification for each type of notification frequency
     DELTA_TABLE = {
         'i':datetime.timedelta(-1),#instant emails are processed separately
@@ -360,7 +360,6 @@ class EmailFeedSetting(models.Model):
                    )
 
 
-    subscriber = models.ForeignKey(User, related_name='notification_subscriptions')
     feed_type = models.CharField(max_length=16, choices=FEED_TYPE_CHOICES)
     frequency = models.CharField(
                                     max_length=8,
@@ -375,6 +374,7 @@ class EmailFeedSetting(models.Model):
         #added to make account merges work properly
         unique_together = ('subscriber', 'feed_type')
         app_label = 'askbot'
+        abstract = True
 
     def __str__(self):
         return unicode(self).encode('utf-8')
@@ -400,7 +400,7 @@ class EmailFeedSetting(models.Model):
                                         ).exclude(pk=self.id)
         if len(similar) > 0:
             raise IntegrityError('email feed setting already exists')
-        super(EmailFeedSetting,self).save(*args,**kwargs)
+        super(FeedSettingAbstract, self).save(*args,**kwargs)
 
     def get_previous_report_cutoff_time(self):
         now = timezone.now()
@@ -417,6 +417,12 @@ class EmailFeedSetting(models.Model):
     def mark_reported_now(self):
         self.reported_at = timezone.now()
         self.save()
+
+class EmailFeedSetting(FeedSettingAbstract):
+    subscriber = models.ForeignKey(User, related_name='notification_subscriptions')
+
+class SMSFeedSetting(FeedSettingAbstract):
+    subscriber = models.ForeignKey(User, related_name='sms_notification_subscriptions')
 
 
 class GroupMembership(models.Model):

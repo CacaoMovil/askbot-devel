@@ -82,6 +82,7 @@ textarea:focus, input:focus {
 }
 input[type="email"],
 input[type="text"],
+input[type="tel"],
 input[type="password"],
 select,
 textarea,
@@ -3105,7 +3106,8 @@ tr.mceLast {
 .user-profile-edit-page select {
   width: 100%;
 }
-.user-profile-edit-page .user-details input[type="text"], .user-profile-edit-page .user-details textarea {
+.user-profile-edit-page .user-details input[type="text"], .user-profile-edit-page .user-details textarea, 
+.user-profile-edit-page .user-details input[type="tel"]{
   width: 100%;
 }
 .user-profile-edit-page .user-details input[type="checkbox"], .user-profile-edit-page .user-details input[type="submit"], .user-profile-edit-page .user-details input[type="button"] {

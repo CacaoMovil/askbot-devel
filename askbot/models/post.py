@@ -810,7 +810,19 @@ class Post(models.Model):
             args=(
                 update_activity.pk,
                 self.id,
-                notify_sets['for_email']
+                notify_sets['for_email'],
+                'email'
+            ),
+            countdown=django_settings.NOTIFICATION_DELAY_TIME
+        )
+
+        defer_celery_task(
+            send_instant_notifications_about_activity_in_post,
+            args=(
+                update_activity.pk,
+                self.id,
+                notify_sets['for_sms'],
+                'sms'
             ),
             countdown=django_settings.NOTIFICATION_DELAY_TIME
         )
@@ -1232,7 +1244,7 @@ class Post(models.Model):
         """
         subscriber_set = set()
 
-        from askbot.models.user import EmailFeedSetting
+        from askbot.models.user import EmailFeedSetting, SMSFeedSetting
         global_subscriptions = EmailFeedSetting.objects.filter(
             feed_type='q_all',
             frequency='i'
@@ -1269,7 +1281,7 @@ class Post(models.Model):
 
     def _qa__get_instant_notification_subscribers(
             self, potential_subscribers=None, mentioned_users=None,
-            exclude_list=None):
+            exclude_list=None, notification_type='email'):
         """get list of users who have subscribed to
         receive instant notifications for a given post
 
@@ -1301,13 +1313,20 @@ class Post(models.Model):
         subscriber_set = set()
 
         # 1) mention subscribers - common to questions and answers
-        from askbot.models.user import EmailFeedSetting
+        from askbot.models.user import EmailFeedSetting, SMSFeedSetting
         if mentioned_users:
-            mention_subscribers = EmailFeedSetting.objects.filter_subscribers(
-                potential_subscribers=mentioned_users,
-                feed_type='m_and_c',
-                frequency='i'
-            )
+            if notification_type == 'email':
+                mention_subscribers = EmailFeedSetting.objects.filter_subscribers(
+                    potential_subscribers=mentioned_users,
+                    feed_type='m_and_c',
+                    frequency='i'
+                )
+            else:
+                mention_subscribers = SMSFeedSetting.objects.filter_subscribers(
+                    potential_subscribers=mentioned_users,
+                    feed_type='m_and_c',
+                    frequency='i')
+                mention_subscribers = set()
             subscriber_set.update(mention_subscribers)
 
         origin_post = self.get_origin_post()
@@ -1318,11 +1337,18 @@ class Post(models.Model):
         selective_subscribers = origin_post.thread.followed_by.all()
 
         if selective_subscribers:
-            selective_subscribers = EmailFeedSetting.objects.filter_subscribers(
-                potential_subscribers=selective_subscribers,
-                feed_type='q_sel',
-                frequency='i'
-            )
+            if notification_type=='email':
+                selective_subscribers = EmailFeedSetting.objects.filter_subscribers(
+                    potential_subscribers=selective_subscribers,
+                    feed_type='q_sel',
+                    frequency='i'
+                )
+            else:
+                selective_subscribers = SMSFeedSetting.objects.filter_subscribers(
+                    potential_subscribers=selective_subscribers,
+                    feed_type='q_sel',
+                    frequency='i'
+                )
             subscriber_set.update(selective_subscribers)
 
         # 3) whole forum subscribers
@@ -1331,12 +1357,20 @@ class Post(models.Model):
 
         # 4) question asked by me (todo: not "edited_by_me" ???)
         question_author = origin_post.author
-        if EmailFeedSetting.objects.filter(
-            subscriber=question_author,
-            frequency='i',
-            feed_type='q_ask'
-        ).exists():
-            subscriber_set.add(question_author)
+        if notification_type == 'email':
+            if EmailFeedSetting.objects.filter(
+                subscriber=question_author,
+                frequency='i',
+                feed_type='q_ask'
+            ).exists():
+                subscriber_set.add(question_author)
+        else:
+            if SMSFeedSetting.objects.filter(
+                subscriber=question_author,
+                frequency='i',
+                feed_type='q_ask'
+            ).exists():
+                subscriber_set.add(question_author)
 
         # 4) questions answered by me -make sure is that people
         # are authors of the answers to this question
@@ -1347,18 +1381,25 @@ class Post(models.Model):
             answer_authors.update(authors)
 
         if answer_authors:
-            answer_subscribers = EmailFeedSetting.objects.filter_subscribers(
-                potential_subscribers=answer_authors,
-                frequency='i',
-                feed_type='q_ans',
-            )
+            if notification_type == 'email':
+                answer_subscribers = EmailFeedSetting.objects.filter_subscribers(
+                    potential_subscribers=answer_authors,
+                    frequency='i',
+                    feed_type='q_ans',
+                )
+            else:
+                answer_subscribers = SMSFeedSetting.objects.filter_subscribers(
+                    potential_subscribers=answer_authors,
+                    frequency='i',
+                    feed_type='q_ans',
+                )
             subscriber_set.update(answer_subscribers)
 
         return subscriber_set - set(exclude_list)
 
     def _comment__get_instant_notification_subscribers(
             self, potential_subscribers=None, mentioned_users=None,
-            exclude_list=None):
+            exclude_list=None, notification_type='email'):
         """get list of users who want instant notifications about comments
 
         argument potential_subscribers is required as it saves on db hits
@@ -1384,22 +1425,35 @@ class Post(models.Model):
         if mentioned_users:
             potential_subscribers.update(mentioned_users)
 
-        from askbot.models.user import EmailFeedSetting
+        from askbot.models.user import EmailFeedSetting, SMSFeedSetting
+
         if potential_subscribers:
-            comment_subscribers = EmailFeedSetting.objects.filter_subscribers(
-                                        potential_subscribers=potential_subscribers,
-                                        feed_type='m_and_c',
-                                        frequency='i')
+            if notification_type == 'email':
+                comment_subscribers = EmailFeedSetting.objects.filter_subscribers(
+                                            potential_subscribers=potential_subscribers,
+                                            feed_type='m_and_c',
+                                            frequency='i')
+            else:
+                comment_subscribers = SMSFeedSetting.objects.filter_subscribers(
+                                            potential_subscribers=potential_subscribers,
+                                            feed_type='m_and_c',
+                                            frequency='i')
             subscriber_set.update(comment_subscribers)
 
         origin_post = self.get_origin_post()
         # TODO: The line below works only if origin_post is Question !
         selective_subscribers = origin_post.thread.followed_by.all()
         if selective_subscribers:
-            selective_subscribers=EmailFeedSetting.objects.filter_subscribers(
-                                    potential_subscribers=selective_subscribers,
-                                    feed_type='q_sel',
-                                    frequency='i')
+            if notification_type == 'email':
+                selective_subscribers=EmailFeedSetting.objects.filter_subscribers(
+                                        potential_subscribers=selective_subscribers,
+                                        feed_type='q_sel',
+                                        frequency='i')
+            else:
+                selective_subscribers=SMSFeedSetting.objects.filter_subscribers(
+                                        potential_subscribers=selective_subscribers,
+                                        feed_type='q_sel',
+                                        frequency='i')
             for subscriber in selective_subscribers:
                 if origin_post.passes_tag_filter_for_user(subscriber):
                     subscriber_set.add(subscriber)
@@ -1412,19 +1466,22 @@ class Post(models.Model):
         return subscriber_set - set(exclude_list)
 
     def get_instant_notification_subscribers(
-            self, potential_subscribers=None, mentioned_users=None,
-            exclude_list=None):
+            self, potential_subscribers=None,
+            mentioned_users=None, exclude_list=None,
+            notification_type='email'):
         if self.is_question() or self.is_answer():
             subscribers = self._qa__get_instant_notification_subscribers(
                 potential_subscribers=potential_subscribers,
                 mentioned_users=mentioned_users,
-                exclude_list=exclude_list
+                exclude_list=exclude_list,
+                notification_type=notification_type
             )
         elif self.is_comment():
             subscribers = self._comment__get_instant_notification_subscribers(
                 potential_subscribers=potential_subscribers,
                 mentioned_users=mentioned_users,
-                exclude_list=exclude_list
+                exclude_list=exclude_list,
+                notification_type=notification_type
             )
         elif self.is_tag_wiki() or self.is_reject_reason():
             return set()
@@ -1452,6 +1509,7 @@ class Post(models.Model):
         * 'for_inbox' - users for which to add inbox items
         * 'for_mentions' - for whom mentions are added
         * 'for_email' - to whom email notifications should be sent
+        * 'for_sms' - to whom sms notifications should be sent
         """
         result = dict()
         result['for_mentions'] = set(mentioned_users) - set(exclude_list)
@@ -1460,7 +1518,6 @@ class Post(models.Model):
         # are included, for comments only authors of comments and parent
         # post are included
         result['for_inbox'] = self.get_response_receivers(exclude_list=exclude_list)
-
         if not askbot_settings.ENABLE_EMAIL_ALERTS:
             result['for_email'] = set()
         else:
@@ -1470,7 +1527,14 @@ class Post(models.Model):
             result['for_email'] = self.get_instant_notification_subscribers(
                 potential_subscribers=result['for_inbox'],
                 mentioned_users=result['for_mentions'],
-                exclude_list=exclude_list)
+                exclude_list=exclude_list, notification_type='sms')
+
+        if askbot_settings.ENABLE_SMS_NOTIFICATIONS:
+            result['for_sms'] = self.get_instant_notification_subscribers(
+                potential_subscribers=result['for_inbox'],
+                mentioned_users=result['for_mentions'],
+                exclude_list=exclude_list, notification_type='sms')
+
         return result
 
     def cache_latest_revision(self, rev):

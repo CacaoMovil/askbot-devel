@@ -26,6 +26,16 @@ settings.register(
     )
 )
 
+settings.register(
+    livesettings.BooleanValue(
+        SMS_SETTINGS,
+        'ENABLE_SMS_NOTIFICATIONS',
+        default=False,
+        description=_('Enable notifications for users with mobiles phones'),
+        help_text=_("Extra setup is required in the external keys section")
+    )
+)
+
 SMS_BACKEND_HOICES = (
     ('twilio', 'Twilio sms backend'),
 )

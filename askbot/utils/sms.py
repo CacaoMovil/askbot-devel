@@ -34,3 +34,7 @@ def send_sms(to, message):
     backend = get_sms_backend_client()
     return backend.send_sms(askbot_settings.SMS_DEFAULT_FROM_NUMBER,
                             to, message)
+
+def send_sms_notification(to_user, post, update_activity):
+    message = '%s...' % post.text[:140]
+    send_sms(str(to_user.askbot_profile.phone_number), message)
