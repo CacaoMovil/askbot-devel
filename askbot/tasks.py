@@ -49,6 +49,7 @@ from askbot.models import (
 from askbot.models.badges import award_badges_signal
 from askbot import exceptions as askbot_exceptions
 from askbot.utils.twitter import Twitter
+from askbot.utils import sms
 
 
 logger = get_task_logger(__name__)
@@ -205,11 +206,10 @@ def record_question_visit(
 
 @task()
 def send_instant_notifications_about_activity_in_post(
-        activity_id=None, post_id=None, recipients=None):
-
+        activity_id=None, post_id=None, recipients=None,
+        notification_type='email'):
     if recipients is None:
         return
-
     acceptable_types = const.RESPONSE_ACTIVITY_TYPES_FOR_INSTANT_NOTIFICATIONS
     try:
         update_activity = Activity.objects\
@@ -241,17 +241,21 @@ def send_instant_notifications_about_activity_in_post(
 
         activate_language(post.language_code)
 
-        email = InstantEmailAlert({
-            'to_user': user,
-            'from_user': update_activity.user,
-            'post': post,
-            'update_activity': update_activity
-        })
-        try:
-            email.send([user.email])
-        except askbot_exceptions.EmailNotSent, error:
-            logger.debug(
-                '%s, error=%s, logId=%s' % (user.email, error, log_id)
-            )
+        if notification_type == 'email':
+
+            email = InstantEmailAlert({
+                'to_user': user,
+                'from_user': update_activity.user,
+                'post': post,
+                'update_activity': update_activity
+            })
+            try:
+                email.send([user.email])
+            except askbot_exceptions.EmailNotSent, error:
+                logger.debug(
+                    '%s, error=%s, logId=%s' % (user.email, error, log_id)
+                )
+            else:
+                logger.debug('success %s, logId=%s' % (user.email, log_id))
         else:
-            logger.debug('success %s, logId=%s' % (user.email, log_id))
+            sms.send_sms_notification(user, post, update_activity)

@@ -114,6 +114,15 @@ urlpatterns = patterns(
         name='user_subscriptions'
     ),
     url(
+        r'^%s(?P<id>\d+)/(?P<slug>.+)/%s$' % (
+            pgettext('urls', 'users/'),
+            pgettext('urls', 'sms-subscriptions/'),
+        ),
+        views.users.user,
+        kwargs={'tab_name': 'sms_subscriptions'},
+        name='user_subscriptions'
+    ),
+    url(
         r'^%s%s$' % (
             pgettext('urls', 'users/'),
             pgettext('urls', 'unsubscribe/'),

@@ -27,6 +27,7 @@ from captcha.fields import ReCaptchaField
 from askbot.conf import settings as askbot_settings
 from askbot.conf import get_tag_email_filter_strategy_choices
 from tinymce.widgets import TinyMCE
+from phonenumber_field.formfields import PhoneNumberField
 import logging
 
 
@@ -1392,6 +1393,10 @@ class EditUserForm(forms.Form):
         label=u'Email', required=False, max_length=255,
         widget=forms.TextInput(attrs={'size': 35}))
 
+    phone_number = PhoneNumberField(
+        label=_("Phone Number"), required=False,
+        widget=forms.TextInput(attrs={'size': 35}))
+
     realname = forms.CharField(
         label=_('Real name'), required=False, max_length=255,
         widget=forms.TextInput(attrs={'size': 35}))
@@ -1501,8 +1506,14 @@ class EmailFeedSettingField(forms.ChoiceField):
         kwarg['widget'] = forms.RadioSelect
         super(EmailFeedSettingField, self).__init__(*arg, **kwarg)
 
+class SMSFeedSettingField(forms.ChoiceField):
+    def __init__(self, *arg, **kwarg):
+        kwarg['choices'] = const.SMS_NOTIFICATION_DELIVERY_SCHEDULE_CHOICES
+        kwarg['widget'] = forms.RadioSelect
+        super(SMSFeedSettingField, self).__init__(*arg, **kwarg)
 
-class EditUserEmailFeedsForm(forms.Form):
+class EditUserFeedFormBase(forms.Form):
+
     FORM_TO_MODEL_MAP = {
         'all_questions': 'q_all',
         'asked_by_me': 'q_ask',
@@ -1526,7 +1537,7 @@ class EditUserEmailFeedsForm(forms.Form):
     }
 
     def __init__(self, *args, **kwargs):
-        super(EditUserEmailFeedsForm, self).__init__(*args, **kwargs)
+        super(EditUserFeedFormBase, self).__init__(*args, **kwargs)
         self.fields = SortedDict((
             ('asked_by_me', EmailFeedSettingField(label=askbot_settings.WORDS_ASKED_BY_ME)),
             ('answered_by_me', EmailFeedSettingField(label=askbot_settings.WORDS_ANSWERED_BY_ME)),
@@ -1534,20 +1545,6 @@ class EditUserEmailFeedsForm(forms.Form):
             ('all_questions', EmailFeedSettingField(label=_('Entire forum (tag filtered)'))),
             ('mentions_and_comments', EmailFeedSettingField(label=_('Comments and posts mentioning me')))
         ))
-
-    def set_initial_values(self, user=None):
-        from askbot import models
-        KEY_MAP = dict([(v, k) for k, v in self.FORM_TO_MODEL_MAP.iteritems()])
-        if user is not None:
-            settings = models.EmailFeedSetting.objects.filter(subscriber=user)
-            initial_values = {}
-            for setting in settings:
-                feed_type = setting.feed_type
-                form_field = KEY_MAP[feed_type]
-                frequency = setting.frequency
-                initial_values[form_field] = frequency
-            self.initial = initial_values
-        return self
 
     def reset(self):
         """equivalent to set_frequency('n')
@@ -1581,6 +1578,22 @@ class EditUserEmailFeedsForm(forms.Form):
             self.cleaned_data = data
         self.initial = data
 
+class EditUserEmailFeedsForm(EditUserFeedFormBase):
+
+    def set_initial_values(self, user=None):
+        from askbot import models
+        KEY_MAP = dict([(v, k) for k, v in self.FORM_TO_MODEL_MAP.iteritems()])
+        if user is not None:
+            settings = models.EmailFeedSetting.objects.filter(subscriber=user)
+            initial_values = {}
+            for setting in settings:
+                feed_type = setting.feed_type
+                form_field = KEY_MAP[feed_type]
+                frequency = setting.frequency
+                initial_values[form_field] = frequency
+            self.initial = initial_values
+        return self
+
     def save(self, user, save_unbound=False):
         """with save_unbound==True will bypass form
         validation and save initial values
@@ -1609,6 +1622,59 @@ class EditUserEmailFeedsForm(forms.Form):
                 user.followed_threads.clear()
         return changed
 
+class EditUserSMSFeedsForm(EditUserFeedFormBase):
+
+    def __init__(self, *args, **kwargs):
+        super(EditUserFeedFormBase, self).__init__(*args, **kwargs)
+        self.fields = SortedDict((
+            ('asked_by_me', SMSFeedSettingField(label=askbot_settings.WORDS_ASKED_BY_ME)),
+            ('answered_by_me', SMSFeedSettingField(label=askbot_settings.WORDS_ANSWERED_BY_ME)),
+            ('individually_selected', SMSFeedSettingField(label=_('Individually selected'))),
+            ('all_questions', SMSFeedSettingField(label=_('Entire forum (tag filtered)'))),
+            ('mentions_and_comments', SMSFeedSettingField(label=_('Comments and posts mentioning me')))
+        ))
+
+    def set_initial_values(self, user=None):
+        from askbot import models
+        KEY_MAP = dict([(v, k) for k, v in self.FORM_TO_MODEL_MAP.iteritems()])
+        if user is not None:
+            settings = models.SMSFeedSetting.objects.filter(subscriber=user)
+            initial_values = {}
+            for setting in settings:
+                feed_type = setting.feed_type
+                form_field = KEY_MAP[feed_type]
+                frequency = setting.frequency
+                initial_values[form_field] = frequency
+            self.initial = initial_values
+        return self
+
+    def save(self, user, save_unbound=False):
+        """with save_unbound==True will bypass form
+        validation and save initial values
+        """
+        from askbot import models
+        changed = False
+        for form_field, feed_type in self.FORM_TO_MODEL_MAP.items():
+            s, created = models.SMSFeedSetting.objects.get_or_create(
+                    subscriber=user, feed_type=feed_type)
+            if save_unbound:
+                # just save initial values instead
+                if form_field in self.initial:
+                    new_value = self.initial[form_field]
+                else:
+                    new_value = self.fields[form_field].initial
+            else:
+                new_value = self.cleaned_data[form_field]
+            if s.frequency != new_value:
+                s.frequency = new_value
+                s.save()
+                changed = True
+            else:
+                if created:
+                    s.save()
+            if form_field == 'individually_selected':
+                user.followed_threads.clear()
+        return changed
 
 class SubscribeForEmailUpdatesField(forms.ChoiceField):
     """a simple yes or no field to subscribe for email or not"""

@@ -464,6 +464,14 @@ NOTIFICATION_DELIVERY_SCHEDULE_CHOICES = (
                             ('w',_('weekly')),
                             ('n',_('never')),
                         )
+SMS_NOTIFICATION_DELIVERY_SCHEDULE_CHOICES = (
+                            ('i',_('instantly')),
+                            ('d',_('daily')),
+                            ('w',_('weekly')),
+                            ('n',_('never')),
+                        )
+
+
 
 USERNAME_REGEX_STRING = r'^[\w \-.@+\']+$'
 

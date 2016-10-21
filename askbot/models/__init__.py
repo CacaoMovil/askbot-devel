@@ -45,7 +45,8 @@ from askbot.models.question import FavoriteQuestion
 from askbot.models.message import Message
 from askbot.models.tag import Tag, MarkedTag, TagSynonym
 from askbot.models.tag import format_personal_group_name
-from askbot.models.user import EmailFeedSetting, ActivityAuditStatus, Activity
+from askbot.models.user import (EmailFeedSetting, SMSFeedSetting,
+                                ActivityAuditStatus, Activity)
 from askbot.models.user import GroupMembership
 from askbot.models.user import Group
 from askbot.models.user import BulkTagSubscription
@@ -2787,7 +2788,7 @@ def user_get_personal_group(self):
     except Group.DoesNotExist:
         self.join_default_groups()
         return Group.objects.get(name=group_name)
-        
+
 
 def user_get_foreign_groups(self):
     """returns a query set of groups to which user does not belong"""
@@ -4388,6 +4389,7 @@ __all__ = [
         'Activity',
         'ActivityAuditStatus',
         'EmailFeedSetting',
+        'SMSFeedSetting',
         'GroupMembership',
         'Group',
 
