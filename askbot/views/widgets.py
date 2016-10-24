@@ -5,7 +5,9 @@ from django.http import HttpResponse, Http404
 from django.views.decorators import csrf
 from django.utils import timezone
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
 from django.shortcuts import redirect, get_object_or_404
+from django.core.cache import cache
 
 from django.contrib.auth.decorators import login_required
 
@@ -291,3 +293,16 @@ def question_widget(request, widget_id):
            }
 
     return render(request, 'embed/question_widget.html', data)
+
+def contributors_widget(request, contributors_number):
+    """Returns the number of contributors specified by parameter.
+    @returns template with contributors listed."""
+    cache_key = "askbot-contributors-widget-%s" % contributors_number
+    contributors = cache.get(cache_key)
+    if not contributors:
+        contributors = User.objects.filter(is_active=True).\
+                order_by('?')[:contributors_number]
+        cache.set(cache_key, contributors, 3600)
+    return render(request,
+                  'embed/contributors_widget.html',
+                  {"contributors": contributors})

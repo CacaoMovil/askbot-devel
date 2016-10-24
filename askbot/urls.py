@@ -666,6 +666,14 @@ urlpatterns = patterns(
         name='question_widget'
     ),
     service_url(
+        r'^%s%s(?P<contributors_number>\d+)/$' % (
+            pgettext('urls', 'widgets/'),
+            pgettext('urls', 'contributors-list/'),
+        ),
+        views.widgets.contributors_widget,
+        name='contributors_widget'
+    ),
+    service_url(
         r'^get-perms-data/$',
         views.readers.get_perms_data,
         name='get_perms_data'
