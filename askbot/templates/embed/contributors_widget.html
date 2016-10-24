@@ -1,11 +1,47 @@
 {% import "macros.html" as macros %}
 {#% cache 600 "contributors_widget" contributors language_code %#}
+<head>
+  <style type="text/css">
+      html {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+      }
+      *, *:before, *:after {
+        -webkit-box-sizing: inherit;
+        -moz-box-sizing: inherit;
+        box-sizing: inherit;
+      }
+      h2 {
+        background: #c5c5c5;
+        padding: 10px;
+        font-family: sans-serif;
+      }
+      #wdg-contrib-container {
+        display: block;
+        width: 100%;
+        overflow: hidden;
+      }
+      .js-avatar-box {
+        display: inline-block;
+        width: 25%;
+        height: auto;
+        padding: 1px;
+      }
+      .js-avatar-box img {
+        width: 100%;
+        height: auto;
+      }
+  </style>
+</head>
 <div id="contrib-users" class="box">
     <h2 class="contributorback">{% trans %}Contributors{% endtrans %}</h2>
     {% spaceless %}
-    {% for person in contributors %}
-        {{ macros.gravatar(person, 48) }}
-    {% endfor %}
-    {% endspaceless %}
+    <div id="wdg-contrib-container">
+      {% for person in contributors %}
+          {{ macros.gravatar(person, 200) }}
+      {% endfor %}
+      {% endspaceless %}
+    </div>
 </div>
 {#% endcache %#}
