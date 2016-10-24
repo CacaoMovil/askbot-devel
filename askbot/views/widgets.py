@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, get_object_or_404
+from django.utils.translation import ugettext as _
 from django.core.cache import cache
 
 from django.contrib.auth.decorators import login_required
@@ -294,15 +295,18 @@ def question_widget(request, widget_id):
 
     return render(request, 'embed/question_widget.html', data)
 
-def contributors_widget(request, contributors_number):
+def contributors_widget(request):
     """Returns the number of contributors specified by parameter.
     @returns template with contributors listed."""
-    cache_key = "askbot-contributors-widget-%s" % contributors_number
+    contributors_number = request.GET.get('contributors_number', 20)
+    title = request.GET.get('title', _("Contributors"))
+    cache_key = "askbot-contributors-widget-%s-%s" % \
+                  (contributors_number, title)
+
     contributors = cache.get(cache_key)
     if not contributors:
         contributors = User.objects.filter(is_active=True).\
                 order_by('?')[:contributors_number]
         cache.set(cache_key, contributors, 3600)
-    return render(request,
-                  'embed/contributors_widget.html',
-                  {"contributors": contributors})
+    return render(request, 'embed/contributors_widget.html',
+                  {"contributors": contributors, "title": title})
