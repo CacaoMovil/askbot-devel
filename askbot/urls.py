@@ -675,7 +675,7 @@ urlpatterns = patterns(
         name='question_widget'
     ),
     service_url(
-        r'^%s%s/$' % (
+        r'^%s%s$' % (
             pgettext('urls', 'widgets/'),
             pgettext('urls', 'contributors-list/'),
         ),
