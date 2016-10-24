@@ -1,7 +1,7 @@
 {% import "macros.html" as macros %}
 {#% cache 600 "contributors_widget" contributors language_code %#}
 <div id="contrib-users" class="box">
-    <h2 class="contributorback">{% trans %}Contributors{% endtrans %}</h2>
+  <h2 class="contributorback">{{ title }}</h2>
     {% spaceless %}
     {% for person in contributors %}
         {{ macros.gravatar(person, 48) }}
