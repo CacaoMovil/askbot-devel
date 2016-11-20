@@ -1447,6 +1447,7 @@ class EditUserForm(forms.Form):
         self.fields['country'].initial = country
         self.fields['show_country'].initial = user.show_country
         self.fields['show_marked_tags'].initial = user.show_marked_tags
+        self.fields['phone_number'].initial = user.phone_number.as_e164
 
         if user.date_of_birth is not None:
             self.fields['birthday'].initial = user.date_of_birth
