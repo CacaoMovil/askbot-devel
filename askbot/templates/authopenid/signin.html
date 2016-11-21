@@ -98,8 +98,13 @@
                     <input class="button" name="login_with_password" type="submit" value="{% trans %}Sign in{% endtrans %}" />
                     {% if settings.USE_LDAP_FOR_PASSWORD_LOGIN == False and settings.NEW_REGISTRATIONS_DISABLED == False %}
                         <a class="create-password-account" style="vertical-align:middle" href="{% url user_signup_with_password %}">{% trans %}Create a password-protected account{% endtrans %}</a>
+                        {% if settings.ENABLE_SMS_REGISTRATION %}
+                          <a class="create-sms-password-account" style="vertical-align:middle" href="{% url user_signup_with_password%}?login_provider=sms">{% trans %}Create a password-protected account with SMS support{% endtrans %}</a>
+                        {% endif %}
                     {% endif %}
                 </p>
+                </p>
+
             {% else %}{# change password form #}
                 <h2 id="password-heading">
                     {% trans %}To change your password - please enter the new one twice, then submit{% endtrans %}

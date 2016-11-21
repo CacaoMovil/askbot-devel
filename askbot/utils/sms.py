@@ -36,5 +36,5 @@ def send_sms(to, message):
                             to, message)
 
 def send_sms_notification(to_user, post, update_activity):
-    message = '%s...' % post.text[:140]
+    message = post.as_tweet()
     send_sms(str(to_user.askbot_profile.phone_number), message)

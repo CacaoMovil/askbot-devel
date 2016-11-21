@@ -451,7 +451,7 @@ def clean_tag(tag_name, look_in_db=True):
         matching_tags = models.Tag.objects.filter(
                                             name__iexact=tag_name,
                                             language_code=get_language())
-        if not matching_tags:
+        if matching_tags:
             return matching_tags[0].name
         else:
             return tag_name
@@ -1447,6 +1447,7 @@ class EditUserForm(forms.Form):
         self.fields['country'].initial = country
         self.fields['show_country'].initial = user.show_country
         self.fields['show_marked_tags'].initial = user.show_marked_tags
+        self.fields['phone_number'].initial = user.phone_number.as_e164
 
         if user.date_of_birth is not None:
             self.fields['birthday'].initial = user.date_of_birth

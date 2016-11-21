@@ -219,3 +219,19 @@ settings.register(
         description=_('Twilio auth token'),
     )
 )
+
+settings.register(
+    livesettings.StringValue(
+        EXTERNAL_KEYS,
+        'BITLY_LOGIN',
+        description=_('Bit.ly api login'),
+    )
+)
+
+settings.register(
+    livesettings.StringValue(
+        EXTERNAL_KEYS,
+        'BITLY_API_KEY',
+        description=_('Bit.ly api key'),
+    )
+)

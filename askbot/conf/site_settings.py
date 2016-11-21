@@ -119,3 +119,16 @@ settings.register(
         help_text=_('Use HTML to format the message ')
     )
 )
+
+settings.register(
+    livesettings.BooleanValue(
+        QA_SITE_SETTINGS,
+        'USE_BITLY_URL',
+        default=False,
+        description = _('Enable bit.ly url shortener'),
+        help_text=_('''Check to enable bit.ly url
+        shortening in tweets and sms notifications,
+        please add the bit.ly keys in the external keys
+        section''')
+    )
+)

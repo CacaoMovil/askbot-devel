@@ -34,4 +34,5 @@ sanction==0.3.1
 simplejson<=3.8.2
 unidecode<=0.4.19
 twilio==5.6.0
+bitly-api==0.3
 django-phonenumber-field==1.1.0
