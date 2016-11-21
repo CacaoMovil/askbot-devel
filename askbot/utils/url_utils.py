@@ -8,6 +8,9 @@ except ImportError:
     from django.conf.urls.defaults import url
 from django.utils import translation
 
+from bitly_api import Connection
+from askbot.conf import settings as askbot_settings
+
 def reverse_i18n(lang, *args, **kwargs):
     """reverses url in requested language"""
     assert(lang != None)
@@ -102,3 +105,7 @@ def get_logout_redirect_url():
         return settings.LOGOUT_REDIRECT_URL
     else:
         return reverse('index')
+
+def shorten_url(url):
+    bitly = Connection(askbot_settings.BITLY_LOGIN, askbot_settings.BITLY_API_KEY)
+    return bitly.shorten(url)['url']

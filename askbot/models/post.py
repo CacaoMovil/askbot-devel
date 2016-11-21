@@ -37,6 +37,7 @@ from askbot.utils import markup
 from askbot.utils.html import (get_word_count, has_moderated_tags,
                                moderate_tags, sanitize_html, strip_tags,
                                site_url)
+from askbot.utils.url_utils import shorten_url
 from askbot.utils.transaction import defer_celery_task
 from askbot.models.base import (AnonymousContent, BaseQuerySetManager,
                                 DraftContent)
@@ -477,10 +478,14 @@ class Post(models.Model):
         todo: add mentions to relevant people
         """
         url = site_url(self.get_absolute_url(no_slug=True))
+        if askbot_settings.USE_BITLY_URL:
+            url = shorten_url(url)
         if self.post_type == 'question':
             tweet = askbot_settings.WORDS_QUESTION_SINGULAR + ': '
         elif self.post_type == 'answer':
             tweet = askbot_settings.WORDS_ANSWER_SINGULAR + ': '
+        else:
+            tweet = ''
 
         chars_left = 140 - (len(url) + len(tweet) + 1)
         title_str = self.thread.title[:chars_left]
