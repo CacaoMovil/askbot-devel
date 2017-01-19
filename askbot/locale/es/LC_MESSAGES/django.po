@@ -8433,10 +8433,8 @@ msgid "Answer to:"
 msgstr "Respuesta a:"
 
 #: templates/user_profile/user_tabs.html:23
-#, fuzzy
-#| msgid "Enable email alerts"
 msgid "email alerts"
-msgstr "Habilitar alertas de correo"
+msgstr "alertas de correo"
 
 #: templates/user_profile/user_tabs.html:28
 msgid "sms alerts"
