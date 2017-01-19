@@ -1,3 +1,8 @@
+import os
+import uuid
+import StringIO
+from PIL import Image
+
 from askbot.conf import settings as askbot_settings
 from askbot.conf import gravatar_enabled
 from askbot.models import User, user_can_see_karma
@@ -12,6 +17,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.encoding import force_unicode
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.utils.translation import ugettext as _
 import functools
 
@@ -153,6 +159,36 @@ def set_primary(request, user_id=None, extra_context=None, avatar_size=128):
             user.save()
     return redirect_to_show_list(user_id)
 
+@admin_or_owner_required
+def rotate(request, user_id=None):
+    user = get_object_or_404(User, pk=user_id)
+    angle = float(request.POST['angle'])
+
+    if request.method == "POST":
+        #avatar = Avatar.objects.get(id=form.cleaned_data['choice'])
+        avatar = Avatar.objects.get(id=request.POST['choice'])
+        avatar_io = StringIO.StringIO()
+        avatar_image = Image.open(avatar.avatar)
+        image_format = avatar_image.format
+        avatar_image = avatar_image.rotate(angle)
+        avatar_image.save(avatar_io, format=image_format)
+
+        filename = os.path.basename(avatar.avatar.name)
+        filename = '%s.%s' % (uuid.uuid4().hex, image_format.lower())
+
+        image_file = InMemoryUploadedFile(avatar_io, None, filename,
+                                          'image/%s' % image_format,
+                                          avatar_io.len, None)
+        avatar.avatar.save(filename, image_file)
+        avatar.save()
+        sizes = avatar_settings.AVATAR_AUTO_GENERATE_SIZES
+        for size in sizes:
+            avatar.create_thumbnail(size)
+        user.clear_avatar_urls()
+
+    return redirect_to_show_list(user_id)
+
+
 
 @admin_or_owner_required
 def upload(request, user_id=None):
@@ -185,6 +221,8 @@ def upload(request, user_id=None):
         request.session['askbot_avatar_status_message'] = message
 
     return redirect_to_show_list(user_id)
+
+
 
 
 def delete(request, avatar_id):
