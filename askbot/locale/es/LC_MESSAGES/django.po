@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: askbot\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-01-18 23:14-0600\n"
+"POT-Creation-Date: 2017-01-19 15:32-0600\n"
 "PO-Revision-Date: 2016-06-16 08:09+0000\n"
 "Last-Translator: evgeny <evgeny.fadeev@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/askbot/askbot/language/"
@@ -4481,48 +4481,48 @@ msgstr "Perfil"
 msgid "Screen name"
 msgstr "Nombre para mostrar"
 
-#: forms.py:1475 forms.py:1478
+#: forms.py:1477 forms.py:1480
 msgid "this email has already been registered, please use another one"
 msgstr "esta dirección de correo ya ha sido registrada, use una diferente"
 
-#: forms.py:1485
+#: forms.py:1487
 msgid "Choose email tag filter"
 msgstr "Seleccione un filtro de etiquetas para el correo electrónico"
 
-#: forms.py:1545 forms.py:1633
+#: forms.py:1547 forms.py:1635
 msgid "Individually selected"
 msgstr "Seleccionadas individualmente"
 
-#: forms.py:1546 forms.py:1634
+#: forms.py:1548 forms.py:1636
 msgid "Entire forum (tag filtered)"
 msgstr "Foro completo (filtrado por etiqueta)"
 
-#: forms.py:1547 forms.py:1635
+#: forms.py:1549 forms.py:1637
 msgid "Comments and posts mentioning me"
 msgstr "Comentarios y publicaciones mencionándome"
 
-#: forms.py:1685
+#: forms.py:1687
 msgid "please choose one of the options above"
 msgstr "por favor seleccione una de las opciones anteriores"
 
-#: forms.py:1688
+#: forms.py:1690
 msgid "okay, let's try!"
 msgstr "¡bien, probemos!"
 
-#: forms.py:1689
+#: forms.py:1691
 #, python-format
 msgid "no %(sitename)s email please, thanks"
 msgstr "no quiero recibir correo de %(sitename)s, gracias"
 
-#: forms.py:1743 templates/reopen.html:7
+#: forms.py:1745 templates/reopen.html:7
 msgid "Title"
 msgstr "Titulo"
 
-#: forms.py:1744 templates/email/preview_email.html:9 templates/groups.html:32
+#: forms.py:1746 templates/email/preview_email.html:9 templates/groups.html:32
 msgid "Description"
 msgstr "Descripción"
 
-#: forms.py:1770 templates/main_page/sidebar.html:23 templates/tags.html:3
+#: forms.py:1772 templates/main_page/sidebar.html:23 templates/tags.html:3
 #: templates/tags/header.html:9
 #: templates/tags/list_bulk_tag_subscription.html:12
 #: templates/widgets/tag_category_selector.html:2
@@ -5995,6 +5995,11 @@ msgstr "verificar-correo/"
 #: templates/authopenid/signup_with_password.html:74 utils/forms.py:293
 msgid "Password retyped"
 msgstr ""
+
+#: templates/authopenid/sms_validation.txt:1
+#, python-format
+msgid "Welcome to %(site_name)s your verification code is: %(key)s"
+msgstr "Bienvenido a %(site_name)s tu códifo de verificación es: %(key)s"
 
 #: templates/authopenid/tos_field.html:4
 msgid "Terms of service:"
@@ -8397,10 +8402,10 @@ msgid ""
 "select 'no sms' on all items below.<br/>Updates are only sent when there is "
 "any new activity on selected items."
 msgstr ""
-"<span class='big strong'>Ajustar la frecuencia de envío de mensajes.</span> Reciba"
-"actualizaciones en contenido de interés por sms. Si no quiere recibir sms- "
-"seleccione 'no sms' en todas las opciones.<br/>Se envían mensajes cuando hay nueva "
-"actividad en objetos seleccionados."
+"<span class='big strong'>Ajustar la frecuencia de envío de mensajes.</span> "
+"Recibaactualizaciones en contenido de interés por sms. Si no quiere recibir "
+"sms- seleccione 'no sms' en todas las opciones.<br/>Se envían mensajes "
+"cuando hay nueva actividad en objetos seleccionados."
 
 #: templates/user_profile/user_stats.html:6
 #: templates/user_profile/user_tabs.html:6
