@@ -44,7 +44,22 @@
                             <input type="hidden" name="choice" value="{{ avatar.id }}" />
                             <p><input type="submit" class="btn btn-primary" value="{% trans %}Set as primary{% endtrans %}" /></p>
                         </form>
-                    {% endif %}
+                {% endif %}
+                    <form method="POST" action="{% url askbot_avatar_rotate view_user.id %}" style="display: inline;">
+                      {% csrf_token %}
+                      <input type="hidden" name="choice" value="{{ avatar.id }}" />
+                      <input type="hidden" name="angle" value="90">
+                      <input type="submit" class="btn btn-primary" 
+                          value="&#10553;" />
+                      </form>
+                      <form method="POST" action="{% url askbot_avatar_rotate view_user.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="choice" value="{{ avatar.id }}" />
+                        <input type="hidden" name="angle" value="270">
+                        <input type="submit" class="btn btn-primary" 
+                            value="&#10549;" />
+                        </form>
+
                     {# delete avatar button #}
                     <form method="POST" action="{% url askbot_avatar_delete avatar.id %}">
                         {% csrf_token %}

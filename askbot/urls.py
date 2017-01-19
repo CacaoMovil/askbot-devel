@@ -765,6 +765,11 @@ if 'avatar' in settings.INSTALLED_APPS:
             views.avatar_views.delete,
             name='askbot_avatar_delete'
         ),
+        service_url(
+            '^avatar/rotate/(?P<user_id>\d+)/$',
+            views.avatar_views.rotate,
+            name='askbot_avatar_rotate'
+        ),
         service_url(  # this url is used without changes as in the avatar app
             '^avatar/render-primary/(?P<user>[\w\d\.\-_]+)/(?P<size>[\d]+)/$',
             'avatar.views.render_primary',
