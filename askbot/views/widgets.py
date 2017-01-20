@@ -271,7 +271,7 @@ def question_widget(request, widget_id):
     if request.method != 'GET':
         raise Http404
 
-    filter_params = {}
+    filter_params = {'deleted': False}
 
     if widget.tagnames:
         filter_params['tags__name__in'] = widget.tagnames.split(' ')
@@ -283,10 +283,7 @@ def question_widget(request, widget_id):
     if widget.search_query:
         filter_params['title__icontains'] = widget.search_query
 
-    if filter_params:
-        threads = models.Thread.objects.filter(**filter_params).order_by(widget.order_by)[:widget.question_number]
-    else:
-        threads = models.Thread.objects.all().order_by(widget.order_by)[:widget.question_number]
+    threads = models.Thread.objects.filter(**filter_params).order_by(widget.order_by)[:widget.question_number]
 
     data = {
              'threads': threads,
