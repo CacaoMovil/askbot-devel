@@ -5999,7 +5999,7 @@ msgstr ""
 #: templates/authopenid/sms_validation.txt:1
 #, python-format
 msgid "Welcome to %(site_name)s your verification code is: %(key)s"
-msgstr "Bienvenido a %(site_name)s tu códifo de verificación es: %(key)s"
+msgstr "Bienvenido a %(site_name)s tu codigo de verificacion es: %(key)s"
 
 #: templates/authopenid/tos_field.html:4
 msgid "Terms of service:"
