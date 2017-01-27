@@ -25,16 +25,14 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: admin.py:91
-#, fuzzy
 #| msgid "Questions"
 msgid "Question"
-msgstr "Preguntas"
+msgstr "Pregunta"
 
 #: admin.py:156
-#, fuzzy
 #| msgid "edited question"
 msgid "Specific to question"
-msgstr "editar pregunta"
+msgstr "Específicas a una pregunta"
 
 #: conf/access_control.py:12
 msgid "Access control settings"
@@ -7410,7 +7408,6 @@ msgid "%(seen)s flagged posts"
 msgstr "%(seen)s denuncias en posts"
 
 #: templates/main_page.html:15
-#, fuzzy
 #| msgid "Questions"
 msgid "Questions"
 msgstr "Preguntas"
