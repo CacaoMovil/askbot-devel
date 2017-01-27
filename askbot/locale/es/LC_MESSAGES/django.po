@@ -5761,10 +5761,10 @@ msgstr ""
 
 #: templates/authopenid/email_validation/body.html:2
 #: templates/authopenid/email_validation/body.html:3
-#, fuzzy, python-format
+#, python-format
 #| msgid "Welcome to %(site_name)s"
 msgid "Greetings from %(site_name)s"
-msgstr "Bienvenido a %(site_name)s"
+msgstr "Saludos de %(site_name)s"
 
 #: templates/authopenid/email_validation/body.html:7
 #: templates/authopenid/email_validation/body.txt:3
@@ -5790,16 +5790,15 @@ msgstr ""
 "por los iconvenientes"
 
 #: templates/authopenid/email_validation/body.txt:1
-#, fuzzy
 #| msgid "Site title for the Q&A forum"
 msgid "Greetings from the Q&A forum"
-msgstr "Título del sitio para el foro de PyR"
+msgstr "Saludos del foro de preguntas y respuestas"
 
 #: templates/authopenid/email_validation/subject.txt:1
-#, fuzzy, python-format
+#, python-format
 #| msgid "Welcome to %(site_name)s"
 msgid "Validate your %(site_name)s email"
-msgstr "Bienvenido a %(site_name)s"
+msgstr "Valida tu correo de %(site_name)s"
 
 #: templates/authopenid/logout.html:3
 msgid "Logout"
@@ -5883,17 +5882,15 @@ msgid "Login failed, please try again"
 msgstr "Login erroneo, por favor intentalo de nuevo"
 
 #: templates/authopenid/signin.html:82
-#, fuzzy
 #| msgid "Username:"
 msgid "Username"
 msgstr "Usuario:"
 
 #: templates/authopenid/signin.html:84
 #: templates/authopenid/widget_signin.html:79
-#, fuzzy
 #| msgid "Username:"
 msgid "Username or email"
-msgstr "Usuario:"
+msgstr "Usuario or correo:"
 
 #: templates/authopenid/signin.html:94
 #: templates/authopenid/signup_with_password.html:64
@@ -5902,7 +5899,6 @@ msgid "Password"
 msgstr "Contraseña"
 
 #: templates/authopenid/signin.html:102
-#, fuzzy
 #| msgid "Create a password-protected account"
 msgid "Create a password-protected account with SMS support"
 msgstr "Crear una cuenta protegida por contraseña SMS"
@@ -5960,10 +5956,9 @@ msgstr "no puede ser eliminado"
 
 #: templates/authopenid/signin.html:182
 #: templates/authopenid/widget_signin.html:165
-#, fuzzy
 #| msgid "Hi there! Please sign in"
 msgid "Having trouble signing in?"
-msgstr "Hola! Ingrese por favor"
+msgstr "Tiene problemas para ingresar?"
 
 #: templates/authopenid/signup_with_password.html:10
 msgid ""
