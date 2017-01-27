@@ -4093,7 +4093,7 @@ msgstr "Se envio el correo para recuperación de cuenta"
 
 #: deps/django_authopenid/views.py:824 deps/django_authopenid/views.py:829
 msgid "Add at least one login method"
-msgstr ""
+msgstr "Agrega al menos un método de inicio de sesión"
 
 #: deps/django_authopenid/views.py:826
 msgid "If you wish, please add, remove or re-validate your login methods"
@@ -4731,10 +4731,9 @@ msgid "Sent when user validates email or recovers account"
 msgstr ""
 
 #: mail/messages.py:720
-#, fuzzy
 #| msgid "subscribed"
 msgid "Unsubscribe link"
-msgstr "suscrito"
+msgstr "Link para desuscribir"
 
 #: mail/messages.py:721
 msgid "Sent when email key expired, but user is identified"
@@ -5321,18 +5320,16 @@ msgid "Suggested edit"
 msgstr "Edición sugerida"
 
 #: models/post.py:2270
-#, fuzzy
 #| msgctxt "urls"
 #| msgid "revisions/"
 msgid "post revision"
-msgstr "revisiones/"
+msgstr "revisión de publicación"
 
 #: models/post.py:2271
-#, fuzzy
 #| msgctxt "urls"
 #| msgid "revisions/"
 msgid "post revisions"
-msgstr "revisiones/"
+msgstr "revisión de publicación"
 
 #: models/post.py:2316
 #, python-format
@@ -5357,10 +5354,9 @@ msgstr ""
 "que el moderador la apruebe"
 
 #: models/post.py:2418
-#, fuzzy
 #| msgid "not a real question"
 msgid "post flag reason"
-msgstr "no es una pregunta real"
+msgstr "razón de marcado"
 
 #: models/post.py:2419
 #, fuzzy
@@ -5378,10 +5374,9 @@ msgid "\" and more"
 msgstr "\" y más"
 
 #: models/question.py:582
-#, fuzzy
 #| msgid "add group"
 msgid "thread to group"
-msgstr "agregar grupo"
+msgstr "agregar hilo a grupo"
 
 #: models/question.py:583
 #, fuzzy
