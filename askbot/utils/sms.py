@@ -1,3 +1,5 @@
+from django.core.validators import RegexValidator, ValidationError
+
 from askbot.conf import settings as askbot_settings
 
 class InvalidSMSBackend(Exception):
@@ -7,6 +9,9 @@ class BaseSMSBackend(object):
 
     def send_sms(self):
         raise NotImplementedError()
+
+phone_number_validator = RegexValidator(regex=r'^\+?1?\d{9,15}$',
+                                        message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
 
 class TwilioSMSBackend(object):
 
@@ -19,9 +24,11 @@ class TwilioSMSBackend(object):
     def send_sms(self, from_, to, body):
         if type(body) != str:
             body = str(body)
-        message = self.client.messages.create(body=body, from_=from_, to=to)
-        return message
-
+        try:
+            message = self.client.messages.create(body=body, from_=from_, to=to)
+            return message
+        except:
+            return None
 
 def get_sms_backend_client():
     if askbot_settings.SMS_BACKEND == 'twilio':
@@ -37,4 +44,8 @@ def send_sms(to, message):
 
 def send_sms_notification(to_user, post, update_activity):
     message = post.as_tweet()
-    send_sms(str(to_user.askbot_profile.phone_number), message)
+    try:
+        phone_number_validator(to_user.askbot_profile.phone_number)
+        send_sms(str(to_user.askbot_profile.phone_number), message)
+    except ValidationError:
+        return None
