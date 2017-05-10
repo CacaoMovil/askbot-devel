@@ -22,8 +22,9 @@ class TwilioSMSBackend(object):
         self.client = TwilioRestClient(self.account, self.token)
 
     def send_sms(self, from_, to, body):
-        if type(body) != str:
+        if type(body) not in (str, unicode):
             body = str(body)
+
         try:
             message = self.client.messages.create(body=body, from_=from_, to=to)
             return message
